@@ -1,0 +1,80 @@
+relational_operator
+    : EQ
+    | NOT_EQ
+    | LT
+    | GT
+    | EQ_LT
+    | EQ_GT
+    ;
+
+multiplicative_operator 
+    : MUL
+    | DIV
+    | MOD
+    | FLOORDIV
+    ;
+
+aditive_operator
+    : PLUS
+    | MINUS
+    ;
+
+type_spec
+    : INTEGER
+    | REAL
+    | STRING
+    | BOOLEAN
+    ;
+
+factor 
+    : BOOLEAN_CONST
+    | STRING_CONST
+    | INTEGER_CONST
+    | REAL_CONST
+    | MINUS factor 
+    | PLUS factor
+    | NOT factor
+    | LPARENT expr 
+    | variable
+    | NON
+    ;
+
+term
+    : factor (EXPONENT term)?
+    ;
+
+simple_term 
+    : term (MULTIPLICATIVE_OPERATOR simple_term)?
+    ;
+
+simple_expr 
+    : simple_term (ADITIVE_OPERATOR simple_term)?
+    ;
+
+relational_expr
+    : simple_term (RELATIONAL_OPERATOR relational_expr)?
+    ;
+
+and_expr
+    : relational_expr (AND and_expr)?
+    ;
+
+or_expr
+    : simple_expr (relational_operator simple_expr)?
+    ;
+
+expr
+    : or_expr
+    ;
+
+empty
+    :
+    ;
+
+variable
+    : ID
+    ;
+
+assignment_statement
+    : variable ASSIGN expr
+    ;
