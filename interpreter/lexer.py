@@ -1,7 +1,6 @@
 from interpreter.tokens_type import TokenType as Tk
 from interpreter.exceptions import LexerError
 
-
 class Token():
     def __init__(self, type, value, lineno=None, column=None):
         self.type = type
@@ -22,7 +21,7 @@ class Token():
 
 def _build_reserved_keywords():
     tt_list = list(Tk)
-    start_index = tt_list.index(Tk.PROGRAM)
+    start_index = tt_list.index(Tk.FUN)
     end_index = tt_list.index(Tk.END)
     reserved_keywords = {
         token_type.value: token_type
@@ -84,9 +83,9 @@ class Lexer():
                 result += self.current_char
                 self.next_char()
 
-            token = Token(Tk.REAL_CONST, float(result))
+            token = Token(Tk.REAL_VALUE, float(result))
         else:
-            token = Token(Tk.INTEGER_CONST, int(result))
+            token = Token(Tk.INTEGER_VALUE, int(result))
 
         return token
 

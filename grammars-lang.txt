@@ -78,3 +78,42 @@ variable
 assignment_statement
     : variable ASSIGN expr
     ;
+
+statement
+    : compound_statement
+    | assignment_statement
+    | empty
+    ;
+
+statement_list
+    : statement (SEMICOLON statement_list)?
+    ;
+
+variable_declaration
+    : ID (COMMA ID)* COLON type_spec (ASSIGN expr)?
+    ;
+
+formal_parameter
+    : ID COLON type_spec
+    ;
+
+formal_parameter_list 
+    : formal_parameter
+    | formal_parameter COMMA formal_parameter_list
+    ;
+
+function_declaration
+    : FUN ID LPAREN formal_parameter_list RPAREN block
+    ;
+    
+function_call_statement
+    : ID LPAREN (expr (COMMA expr)*)? RPAREN
+    ;
+
+block
+    : DO statement_list END
+    ;
+
+program
+    : function_declaration
+    ;
