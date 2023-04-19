@@ -1,0 +1,7 @@
+fun function-name (a: int) do
+    var-name: int;
+    another-var: int;
+
+    var-name = 1;
+    another-var = var-name
+end

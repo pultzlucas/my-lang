@@ -1,7 +1,7 @@
 from interpreter.lexer import Lexer
 from interpreter.analyser import Analyser
 from interpreter.ast.executor import Executor, ASTJsonBuilder
-from interpreter.ast.symbol import SymbolTableBuilder
+from interpreter.ast.symbol import SemanticAnalyser
 
 import argparse
 import json
@@ -29,9 +29,9 @@ def main():
         analyser = Analyser(lexer)
         ast = analyser.parse()
         executor = Executor(ast)
-        symtab_builder = SymbolTableBuilder(ast)
-        print(json.dumps(ast.dict(), indent = 3))
-        # print(symtab_builder.run())
+        symtab_builder = SemanticAnalyser(ast)
+        # print(json.dumps(ast.dict(), indent = 3))
+        symtab_builder.run()
         # executor.run()
 
 if __name__ == '__main__':

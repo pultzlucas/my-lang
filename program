@@ -1,4 +1,0 @@
-fun function-name (a: integer) do
-    var-name = 1;
-    another-var = var-name
-end

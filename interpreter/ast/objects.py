@@ -1,11 +1,14 @@
 class AST():
     pass
 
-# class ProgramMainNode(AST):
-#     def __init__(self, formal_params, block_node):
-#         self.formal_params = formal_params  # a list of Param nodes
-#         self.block_node = block_node
+class ProgramMainNode(AST):
+    def __init__(self, block_node, formal_params = []):
+        self.formal_params = formal_params  # a list of Param nodes
+        self.block_node = block_node
 
+    def dict(self):
+        return self.block_node.dict()
+    
 class FunctionDeclarationNode(AST):
     def __init__(self, fun_name, formal_params, block_node):
         self.fun_name = fun_name
@@ -83,6 +86,17 @@ class AssignNode(AST):
             'value': self.right.value
         }
 
+class VarDeclarationNode(AST):
+    def __init__(self, var_node, type_node):
+        self.var_node = var_node
+        self.type_node = type_node
+
+    def dict(self):
+        return {
+            'var': self.var_node.value,
+            'type' : self.type_node.value
+        }
+
 class VarNode(AST):
     def __init__(self, token):
         self.token = token
@@ -90,7 +104,8 @@ class VarNode(AST):
 
     def dict(self):
         return {
-            'var': 'oi',
+            'var': self.value,
+            'value' : self.value
         }
 
 class NoOpNode(AST):
@@ -104,6 +119,6 @@ class ParamNode(AST):
     
     def dict(self): 
         return {
-            'var' : str(self.var_node),
-            'type' : str(self.type_node)
+            'var' : self.var_node.value,
+            'type' : self.type_node.value
         }

@@ -57,8 +57,8 @@ class ScopedSymbolTable(object):
             self._init_builtins()
 
     def _init_builtins(self):
-        self.insert(BuiltinTypeSymbol('INTEGER'))
-        self.insert(BuiltinTypeSymbol('REAL'))
+        self.insert(BuiltinTypeSymbol('INT'))
+        self.insert(BuiltinTypeSymbol('FLOAT'))
 
     def __str__(self):
         h1 = 'SCOPE (SCOPED SYMBOL TABLE)'
@@ -103,7 +103,7 @@ class ScopedSymbolTable(object):
             return self.enclosing_scope.lookup(name)
 
 
-class SymbolTableBuilder(NodeVisitor):
+class SemanticAnalyser(NodeVisitor):
     def __init__(self, tree):
         self.tree = tree
         self.current_scope = ScopedSymbolTable('init', scope_level=0)
@@ -126,7 +126,7 @@ class SymbolTableBuilder(NodeVisitor):
         for statement in node.statements:
             self.visit(statement)
 
-    def visit_ProgramNode(self, node):
+    def visit_ProgramMainNode(self, node):
         self.log('ENTER scope: global')
         scope = ScopedSymbolTable(
             scope_name='global',
@@ -134,7 +134,7 @@ class SymbolTableBuilder(NodeVisitor):
             enclosing_scope=self.current_scope
         )
         self.current_scope = scope
-        self.visit(node.block)
+        self.visit(node.block_node)
         self.current_scope = self.current_scope.enclosing_scope
         self.log('LEAVE scope: global')
 

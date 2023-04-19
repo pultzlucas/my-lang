@@ -9,7 +9,9 @@ from interpreter.ast.objects import (
     BlockNode,
     FunctionDeclarationNode,
     ParamNode,
-    TypeNode
+    TypeNode,
+    ProgramMainNode,
+    VarDeclarationNode
 )
 
 from interpreter.exceptions import ParserError, ErrorCode 
@@ -40,8 +42,23 @@ class Analyser:
         raise Exception(f'Unexpected token "{unexpected}", expected "{expected}"')
 
     def program(self):
-        return self.function_declaration()
-        # return ProgramMainNode(block=block)
+        main_fun = self.function_declaration()
+        # return self.compounds_list()
+        return ProgramMainNode(block_node=main_fun.block_node)        
+
+    def compounds_list(self):
+        compounds = [self.function_declaration()]
+        
+    def variable_declaration(self):
+        var_node = VarNode(self.lexer.current_token)
+        self.eat(Tk.ID)
+        # while self.lexer.current_token.type == Tk.COMMA:
+        #     self.eat(Tk.COMMA)
+        #     var_nodes.append(VarNode(self.lexer.current_token))
+        #     self.eat(Tk.ID)
+        self.eat(Tk.COLON)
+        type_spec = self.type_spec()
+        return VarDeclarationNode(var_node, type_spec)
 
     def function_declaration(self):
         self.eat(Tk.FUN)
@@ -58,7 +75,7 @@ class Analyser:
         return fun_decl
 
     def formal_parameter_list(self):
-        params = self.formal_parameter()
+        params = [self.formal_parameter()]
         if self.lexer.current_token.type == Tk.COMMA:
             self.eat(Tk.SEMICOLON)
             params.extend(self.formal_parameter_list())
@@ -84,9 +101,6 @@ class Analyser:
         return node
 
     def block(self):
-        # compound_statement_node = self.compound_statement()
-        # node = BlockNode(declaration_nodes, compound_statement_node)
-        # return node
         self.eat(Tk.DO)
         statement_list = self.statement_list()
         self.eat(Tk.END)
@@ -138,7 +152,9 @@ class Analyser:
         return results
 
     def statement(self):
-        if self.lexer.current_token.type == Tk.ID:
+        if self.lexer.current_token.type == Tk.ID and self.lexer.current_char == ':':
+            node = self.variable_declaration()
+        elif self.lexer.current_token.type == Tk.ID:
             node = self.assignment_statement()
         else:
             node = self.empty()

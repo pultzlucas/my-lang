@@ -90,7 +90,7 @@ statement_list
     ;
 
 variable_declaration
-    : ID (COMMA ID)* COLON type_spec (ASSIGN expr)?
+    : ID (COMMA ID)* COLON type_spec
     ;
 
 formal_parameter
@@ -114,6 +114,10 @@ block
     : DO statement_list END
     ;
 
+compounds_list
+    : function_declaration+
+    ;
+
 program
-    : function_declaration
+    : compounds_list
     ;
