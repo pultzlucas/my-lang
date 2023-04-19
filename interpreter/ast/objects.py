@@ -1,38 +1,46 @@
 class AST():
     pass
 
-class ProgramMainNode(AST):
-    def __init__(self, formal_params, block_node):
-        self.formal_params = formal_params  # a list of Param nodes
-        self.block_node = block_node
+# class ProgramMainNode(AST):
+#     def __init__(self, formal_params, block_node):
+#         self.formal_params = formal_params  # a list of Param nodes
+#         self.block_node = block_node
 
 class FunctionDeclarationNode(AST):
-    def __init__(self, proc_name, formal_params, block_node):
-        self.proc_name = proc_name
+    def __init__(self, fun_name, formal_params, block_node):
+        self.fun_name = fun_name
         self.formal_params = formal_params  # a list of Param nodes
         self.block_node = block_node
 
-class FunctionCallNode(AST):
-    def __init__(self, proc_name, actual_params, token):
-        self.proc_name = proc_name
-        self.actual_params = actual_params  # a list of AST nodes
-        self.token = token
-        self.proc_symbol = None
+    def dict(self):
+        return {
+            'fun_name': self.fun_name,
+            'formal_params': [param.dict() for param in self.formal_params],
+            'block': self.block_node.dict()
+        }
+
+# class FunctionCallNode(AST):
+#     def __init__(self, fun_name, actual_params, token):
+#         self.fun_name = fun_name
+#         self.actual_params = actual_params  # a list of AST nodes
+#         self.token = token
+#         self.proc_symbol = None
 
 class BlockNode(AST):
-    def __init__(self, compound_statement):
-        self.statements = []
+    def __init__(self, statements = []):
+        self.statements = statements
 
-class VarDeclarationNode(AST):
-    def __init__(self, var_node, type_node):
-        self.var_node = var_node
-        self.type_node = type_node
+    def dict(self):
+        return [stt.dict() for stt in self.statements]
 
 class TypeNode(AST):
     def __init__(self, token):
         self.token = token
         self.value = token.value
 
+    def dict(self):
+        return str(self.value)
+    
 class BinOpNode(AST):
     def __init__(self, left, op, right):
         self.left = left
@@ -42,7 +50,7 @@ class BinOpNode(AST):
     def dict(self):
         return {
             'left': self.left.dict(),
-            'op': self.op.type,
+            'op': self.op.value,
             'right': self.right.dict()
         }
     
@@ -67,12 +75,12 @@ class AssignNode(AST):
         self.left = left
         self.token = self.op = op
         self.right = right
-
+    
     def dict(self):
         return {
-            'var': self.left,
-            'op': self.op,
-            'value': self.left
+            'var': self.left.value,
+            'op': self.op.value,
+            'value': self.right.value
         }
 
 class VarNode(AST):
@@ -82,12 +90,10 @@ class VarNode(AST):
 
     def dict(self):
         return {
-            'var': self.token,
-            'value': self.value
+            'var': 'oi',
         }
 
 class NoOpNode(AST):
-    pass
     def dict(self):
         return 'empty'
     
@@ -95,3 +101,9 @@ class ParamNode(AST):
     def __init__(self, var_node, type_node):
         self.var_node = var_node
         self.type_node = type_node
+    
+    def dict(self): 
+        return {
+            'var' : str(self.var_node),
+            'type' : str(self.type_node)
+        }

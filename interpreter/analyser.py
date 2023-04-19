@@ -7,12 +7,9 @@ from interpreter.ast.objects import (
     NoOpNode,
     VarNode,
     BlockNode,
-    VarDeclarationNode,
-    TypeNode,
     FunctionDeclarationNode,
     ParamNode,
-    FunctionCallNode,
-    ProgramMainNode
+    TypeNode
 )
 
 from interpreter.exceptions import ParserError, ErrorCode 
@@ -37,20 +34,13 @@ class Analyser:
         if self.lexer.current_token.type == token_type:
             self.lexer.current_token = self.lexer.next_token()
             return
-        self.error(
-            error_code=ErrorCode.UNEXPECTED_TOKEN,
-            token=self.lexer.current_token,
-        )
+        self.error(token_type, self.lexer.current_token.type)
 
-    def error(self, error_code, token):
-        raise ParserError(
-            error_code=error_code,
-            token=token,
-            message=f'{error_code.value} -> {token}',
-        )
+    def error(self, expected, unexpected):
+        raise Exception(f'Unexpected token "{unexpected}", expected "{expected}"')
 
     def program(self):
-        self.function_declaration()
+        return self.function_declaration()
         # return ProgramMainNode(block=block)
 
     def function_declaration(self):
@@ -60,7 +50,8 @@ class Analyser:
         params = []
         if self.lexer.current_token.type == Tk.LPAREN:
             self.eat(Tk.LPAREN)
-            params = self.formal_parameter_list()
+            if self.lexer.current_token.type != Tk.RPAREN:
+                params = self.formal_parameter_list()
             self.eat(Tk.RPAREN)
         block_node = self.block()
         fun_decl = FunctionDeclarationNode(fun_name, params, block_node)
@@ -75,7 +66,7 @@ class Analyser:
 
     def formal_parameter(self):
         param_token = self.variable()
-        self.eat(Tk.ID)
+        self.eat(Tk.COLON)
         type_node = self.type_spec()
         return ParamNode(param_token, type_node)
 
@@ -92,11 +83,14 @@ class Analyser:
         self.eat(Tk.ID)
         return node
 
-    # def block(self):
-    #     declaration_nodes = self.declarations()
-    #     compound_statement_node = self.compound_statement()
-    #     node = BlockNode(declaration_nodes, compound_statement_node)
-    #     return node
+    def block(self):
+        # compound_statement_node = self.compound_statement()
+        # node = BlockNode(declaration_nodes, compound_statement_node)
+        # return node
+        self.eat(Tk.DO)
+        statement_list = self.statement_list()
+        self.eat(Tk.END)
+        return BlockNode(statement_list)
 
     
     # def funcall_statement(self):
@@ -123,18 +117,6 @@ class Analyser:
     #     )
     #     return node
 
-    # def declarations(self):
-    #     declarations = []
-    #     while self.lexer.current_token.type == Tk.VAR:
-    #         self.eat(Tk.VAR)
-    #         while self.lexer.current_token.type == Tk.ID:
-    #             var_declaration = self.variable_declaration()
-    #             declarations.extend(var_declaration)
-    #             self.eat(Tk.SEMICOLON)
-    #     while self.lexer.current_token.type == Tk.FUN:
-    #         declarations.append(self.function_declaration())
-    #     return declarations
-
     # def variable_declaration(self):
     #     var_nodes = [VarNode(self.lexer.current_token)]
     #     self.eat(Tk.ID)
@@ -148,179 +130,138 @@ class Analyser:
     #         VarDeclarationNode(var_node, type_spec) for var_node in var_nodes
     #     ]
 
-    # def statement_list(self):
-    #     node = self.statement()
-    #     results = [node]
-    #     while self.lexer.current_token.type == Tk.SEMICOLON:
-    #         self.eat(Tk.SEMICOLON)
-    #         results.append(self.statement())
-    #     return results
+    def statement_list(self):
+        results = [self.statement()]
+        while self.lexer.current_token.type == Tk.SEMICOLON:
+            self.eat(Tk.SEMICOLON)
+            results.append(self.statement())
+        return results
 
-    # def statement(self):
-    #     if self.lexer.current_token.type == Tk.BEGIN:
-    #         node = self.compound_statement()
-    #     elif (self.lexer.current_token.type == Tk.ID and
-    #           self.lexer.current_char == '('
-    #     ):
-    #         node = self.funcall_statement()
-    #     elif self.lexer.current_token.type == Tk.ID:
-    #         node = self.assignment_statement()
-    #     else:
-    #         node = self.empty()
-    #     return node
+    def statement(self):
+        if self.lexer.current_token.type == Tk.ID:
+            node = self.assignment_statement()
+        else:
+            node = self.empty()
+        return node
 
-    # def assignment_statement(self):
-    #     left = self.variable()
-    #     token = self.lexer.current_token
-    #     self.eat(Tk.ASSIGN)
-    #     right = self.expr()
-    #     node = AssignNode(left, token, right)
-    #     return node
+    def assignment_statement(self):
+        left = self.variable()
+        token = self.lexer.current_token
+        self.eat(Tk.ASSIGN)
+        right = self.expr()
+        node = AssignNode(left, token, right)
+        return node
 
-    # def factor(self):
-    #     token = self.lexer.current_token
-    #     if token.type == Tk.INTEGER_VALUE:
-    #         self.eat(Tk.INTEGER_VALUE)
-    #         return FactorNode(token)
-    #     elif token.type == Tk.REAL_VALUE:
-    #         self.eat(Tk.REAL_VALUE)
-    #         return FactorNode(token)
-    #     # elif self.lexer.current_token.type == Tk.BOOLEAN:
-    #     #     self.eat(Tk.BOOLEAN)
-    #     #     return FactorNode(token)
-    #     # elif self.lexer.current_token.type == Tk.STRING:
-    #     #     self.eat(Tk.STRING)
-    #     #     return FactorNode(token)
-    #     elif token.type == Tk.PLUS:
-    #         self.eat(Tk.PLUS)
-    #         node = UnaryOpNode(token, self.factor())
-    #         return node
-    #     elif token.type == Tk.MINUS:
-    #         self.eat(Tk.MINUS)
-    #         node = UnaryOpNode(token, self.factor())
-    #         return node
-    #     elif token.type == Tk.NOT:
-    #         self.eat(Tk.NOT)
-    #         node = UnaryOpNode(token, self.factor())
-    #         return node
-    #     elif self.lexer.current_token.type == Tk.LPAREN:
-    #         self.eat(Tk.LPAREN)
-    #         node = self.expr()
-    #         self.eat(Tk.RPAREN)
-    #         return node
-    #     elif self.lexer.current_token.type == Tk.ID:
-    #         return self.variable()
-    #     elif self.lexer.current_token.type == Tk.NON:
-    #         self.eat(Tk.NON)
-    #         return FactorNode(token)
+    def factor(self):
+        token = self.lexer.current_token
+        if token.type == Tk.INTEGER_VALUE:
+            self.eat(Tk.INTEGER_VALUE)
+            return FactorNode(token)
+        elif token.type == Tk.REAL_VALUE:
+            self.eat(Tk.REAL_VALUE)
+            return FactorNode(token)
+        elif self.lexer.current_token.type == Tk.BOOLEAN:
+            self.eat(Tk.BOOLEAN)
+            return FactorNode(token)
+        elif self.lexer.current_token.type == Tk.STRING:
+            self.eat(Tk.STRING)
+            return FactorNode(token)
+        elif token.type == Tk.PLUS:
+            self.eat(Tk.PLUS)
+            node = UnaryOpNode(token, self.factor())
+            return node
+        elif token.type == Tk.MINUS:
+            self.eat(Tk.MINUS)
+            node = UnaryOpNode(token, self.factor())
+            return node
+        elif token.type == Tk.NOT:
+            self.eat(Tk.NOT)
+            node = UnaryOpNode(token, self.factor())
+            return node
+        elif self.lexer.current_token.type == Tk.LPAREN:
+            self.eat(Tk.LPAREN)
+            node = self.expr()
+            self.eat(Tk.RPAREN)
+            return node
+        elif self.lexer.current_token.type == Tk.ID:
+            return self.variable()
+        elif self.lexer.current_token.type == Tk.NON:
+            self.eat(Tk.NON)
+            return FactorNode(token)
 
-    # def term(self):
-    #     """
-    #     term
-    #         : factor (EXPONENT term)?
-    #     """
-    #     node = self.factor()
-    #     token = self.lexer.current_token
-    #     if token.type == Tk.EXPONENT:
-    #         self.eat(Tk.EXPONENT)
-    #         node = BinOpNode(left=node, op=token, right=self.term())
-    #     return node
+    def term(self):
+        node = self.factor()
+        token = self.lexer.current_token
+        if token.type == Tk.EXPONENT:
+            self.eat(Tk.EXPONENT)
+            node = BinOpNode(left=node, op=token, right=self.term())
+        return node
 
-    # def simple_term(self):
-    #     """
-    #     simple_term
-    #         : term (MULTIPLICATIVE_OPERATOR simple_term)?
-    #         ;
-    #     """
-    #     node = self.term()
-    #     if self.lexer.current_token.type in MULTIPLICATIVE_OPERATOR:
-    #         token = self.lexer.current_token
-    #         if self.lexer.current_token.type == Tk.MUL:
-    #             self.eat(Tk.MUL)
-    #         if self.lexer.current_token.type == Tk.DIV:
-    #             self.eat(Tk.DIV)
-    #         if self.lexer.current_token.type == Tk.MOD:
-    #             self.eat(Tk.MOD)
-    #         if self.lexer.current_token.type == Tk.FLOORDIV:
-    #             self.eat(Tk.FLOORDIV)
-    #         node = BinOpNode(left=node, op=token, right=self.simple_term())
-    #     return node
+    def simple_term(self):
+        node = self.term()
+        if self.lexer.current_token.type in MULTIPLICATIVE_OPERATOR:
+            token = self.lexer.current_token
+            if self.lexer.current_token.type == Tk.MUL:
+                self.eat(Tk.MUL)
+            if self.lexer.current_token.type == Tk.DIV:
+                self.eat(Tk.DIV)
+            if self.lexer.current_token.type == Tk.MOD:
+                self.eat(Tk.MOD)
+            if self.lexer.current_token.type == Tk.FLOORDIV:
+                self.eat(Tk.FLOORDIV)
+            node = BinOpNode(left=node, op=token, right=self.simple_term())
+        return node
 
-    # def simple_expr(self):
-    #     """
-    #     simple_expr
-    #         : simple_term (ADITIVE_OPERATOR simple_term)?
-    #         ;
-    #     """
-    #     node = self.simple_term()
-    #     if self.lexer.current_token.type in ADITIVE_OPERATOR:
-    #         token = self.lexer.current_token
-    #         if token.type == Tk.PLUS:
-    #             self.eat(Tk.PLUS)
-    #         if token.type == Tk.MINUS:
-    #             self.eat(Tk.MINUS)
-    #         node = BinOpNode(left=node, op=token, right=self.simple_expr())
-    #     return node
+    def simple_expr(self):
+        node = self.simple_term()
+        if self.lexer.current_token.type in ADITIVE_OPERATOR:
+            token = self.lexer.current_token
+            if token.type == Tk.PLUS:
+                self.eat(Tk.PLUS)
+            if token.type == Tk.MINUS:
+                self.eat(Tk.MINUS)
+            node = BinOpNode(left=node, op=token, right=self.simple_expr())
+        return node
 
-    # def relational_expr(self):
-    #     """
-    #     relational_expr
-    #         : simple_term (RELATIONAL_OPERATOR relational_expr)?
-    #         ;
-    #     """
-    #     node = self.simple_expr()
-    #     if self.lexer.current_token.type in RELATIONAL_OPERATOR:
-    #         token = self.lexer.current_token
-    #         if self.lexer.current_token.type == Tk.EQ:
-    #             self.eat(Tk.EQ)
-    #         if self.lexer.current_token.type == Tk.NOT_EQ:
-    #             self.eat(Tk.NOT_EQ)
-    #         if self.lexer.current_token.type == Tk.GT:
-    #             self.eat(Tk.GT)
-    #         if self.lexer.current_token.type == Tk.LT:
-    #             self.eat(Tk.LT)
-    #         if self.lexer.current_token.type == Tk.EQ_GT:
-    #             self.eat(Tk.EQ_GT)
-    #         if self.lexer.current_token.type == Tk.EQ_LT:
-    #             self.eat(Tk.EQ_LT)
-    #         node = BinOpNode(left=node, op=token, right=self.relational_expr())
-    #     return node
+    def relational_expr(self):
+        node = self.simple_expr()
+        if self.lexer.current_token.type in RELATIONAL_OPERATOR:
+            token = self.lexer.current_token
+            if self.lexer.current_token.type == Tk.EQ:
+                self.eat(Tk.EQ)
+            if self.lexer.current_token.type == Tk.NOT_EQ:
+                self.eat(Tk.NOT_EQ)
+            if self.lexer.current_token.type == Tk.GT:
+                self.eat(Tk.GT)
+            if self.lexer.current_token.type == Tk.LT:
+                self.eat(Tk.LT)
+            if self.lexer.current_token.type == Tk.EQ_GT:
+                self.eat(Tk.EQ_GT)
+            if self.lexer.current_token.type == Tk.EQ_LT:
+                self.eat(Tk.EQ_LT)
+            node = BinOpNode(left=node, op=token, right=self.relational_expr())
+        return node
 
-    # def and_expr(self):
-    #     """
-    #     and_expr
-    #         : relational_expr (AND and_expr)?
-    #         ;
-    #     """
-    #     node = self.relational_expr()
-    #     if self.lexer.current_token.type == Tk.AND:
-    #         token = self.lexer.current_token
-    #         if token.type == Tk.AND:
-    #             self.eat(Tk.AND)
-    #         node = BinOpNode(left=node, op=token, right=self.and_expr())
-    #     return node
+    def and_expr(self):
+        node = self.relational_expr()
+        if self.lexer.current_token.type == Tk.AND:
+            token = self.lexer.current_token
+            if token.type == Tk.AND:
+                self.eat(Tk.AND)
+            node = BinOpNode(left=node, op=token, right=self.and_expr())
+        return node
 
-    # def or_expr(self):
-    #     """
-    #     or_expr
-    #         : simple_expr (relational_operator simple_expr)*
-    #         ;
-    #     """
-    #     node = self.and_expr()
-    #     if self.lexer.current_token.type == Tk.OR:
-    #         token = self.lexer.current_token
-    #         if token.type == Tk.OR:
-    #             self.eat(Tk.OR)
-    #         node = BinOpNode(left=node, op=token, right=self.or_expr())
-    #     return node
+    def or_expr(self):
+        node = self.and_expr()
+        if self.lexer.current_token.type == Tk.OR:
+            token = self.lexer.current_token
+            if token.type == Tk.OR:
+                self.eat(Tk.OR)
+            node = BinOpNode(left=node, op=token, right=self.or_expr())
+        return node
 
-    # def expr(self):
-    #     """
-    #     expr
-    #         : or_expr
-    #         ;
-    #     """
-    #     return self.or_expr()
+    def expr(self):
+        return self.or_expr()
 
     def empty(self):
         return NoOpNode()

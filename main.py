@@ -4,6 +4,7 @@ from interpreter.ast.executor import Executor, ASTJsonBuilder
 from interpreter.ast.symbol import SymbolTableBuilder
 
 import argparse
+import json
 
 def main():
     parser = argparse.ArgumentParser(
@@ -29,8 +30,8 @@ def main():
         ast = analyser.parse()
         executor = Executor(ast)
         symtab_builder = SymbolTableBuilder(ast)
-
-        print(symtab_builder.run())
+        print(json.dumps(ast.dict(), indent = 3))
+        # print(symtab_builder.run())
         # executor.run()
 
 if __name__ == '__main__':
