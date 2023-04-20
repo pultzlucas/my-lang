@@ -114,8 +114,9 @@ block
     : DO statement_list END
     ;
 
-compounds_list
-    : function_declaration+
+declarations
+    : function_declaration
+    | empty
     ;
 
 program

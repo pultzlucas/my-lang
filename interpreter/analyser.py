@@ -10,8 +10,8 @@ from interpreter.ast.objects import (
     FunctionDeclarationNode,
     ParamNode,
     TypeNode,
-    ProgramMainNode,
-    VarDeclarationNode
+    VarDeclarationNode,
+    ProgramNode
 )
 
 from interpreter.exceptions import ParserError, ErrorCode 
@@ -42,20 +42,19 @@ class Analyser:
         raise Exception(f'Unexpected token "{unexpected}", expected "{expected}"')
 
     def program(self):
-        main_fun = self.function_declaration()
-        # return self.compounds_list()
-        return ProgramMainNode(block_node=main_fun.block_node)        
+        return ProgramNode(declarations=self.declarations())        
 
-    def compounds_list(self):
-        compounds = [self.function_declaration()]
-        
+    def declarations(self):
+        declarations = [self.function_declaration()]
+        while self.lexer.current_token.type == Tk.FUN:
+            declarations.append(self.function_declaration())
+        if len(declarations) == 0:
+            return [self.empty()]
+        return declarations
+
     def variable_declaration(self):
         var_node = VarNode(self.lexer.current_token)
         self.eat(Tk.ID)
-        # while self.lexer.current_token.type == Tk.COMMA:
-        #     self.eat(Tk.COMMA)
-        #     var_nodes.append(VarNode(self.lexer.current_token))
-        #     self.eat(Tk.ID)
         self.eat(Tk.COLON)
         type_spec = self.type_spec()
         return VarDeclarationNode(var_node, type_spec)

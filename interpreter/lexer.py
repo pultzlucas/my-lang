@@ -170,7 +170,7 @@ class Lexer():
             if self.current_char == "'":
                 return self.get_string_tk()
             
-            if self.current_char.isalpha() or self.current_char == '_':
+            if self.current_char.isalpha() or self.current_char == '-':
                 return self._id()
 
             try:

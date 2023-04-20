@@ -126,7 +126,7 @@ class SemanticAnalyser(NodeVisitor):
         for statement in node.statements:
             self.visit(statement)
 
-    def visit_ProgramMainNode(self, node):
+    def visit_ProgramNode(self, node):
         self.log('ENTER scope: global')
         scope = ScopedSymbolTable(
             scope_name='global',
@@ -134,7 +134,9 @@ class SemanticAnalyser(NodeVisitor):
             enclosing_scope=self.current_scope
         )
         self.current_scope = scope
-        self.visit(node.block_node)
+
+        for decl in node.declarations:
+            self.visit(decl)
         self.current_scope = self.current_scope.enclosing_scope
         self.log('LEAVE scope: global')
 
@@ -179,15 +181,15 @@ class SemanticAnalyser(NodeVisitor):
         if var_symbol is None:
             self.error(error_code=ErrorCode.ID_NOT_FOUND, token=node.token)
 
-    def visit_ProcedureDeclarationNode(self, node):
-        proc_name = node.proc_name
-        proc_symbol = ProcedureSymbol(proc_name)
+    def visit_FunctionDeclarationNode(self, node):
+        fun_name = node.fun_name
+        proc_symbol = ProcedureSymbol(fun_name)
         self.current_scope.insert(proc_symbol)
 
-        self.log(f'ENTER scope: {proc_name}')
+        self.log(f'ENTER scope: {fun_name}')
         # Scope for parameters and local variables
         procedure_scope = ScopedSymbolTable(
-            scope_name=proc_name,
+            scope_name=fun_name,
             scope_level=self.current_scope.scope_level + 1,
             enclosing_scope=self.current_scope
         )
@@ -206,18 +208,18 @@ class SemanticAnalyser(NodeVisitor):
         self.log(procedure_scope)
 
         self.current_scope = self.current_scope.enclosing_scope
-        self.log(f'LEAVE scope: {proc_name}')
+        self.log(f'LEAVE scope: {fun_name}')
 
         # accessed by the interpreter when executing procedure call
         proc_symbol.block_ast = node.block_node
         
     def visit_ProcedureCallNode(self, node):
-        procedure = self.current_scope.lookup(node.proc_name)
+        procedure = self.current_scope.lookup(node.fun_name)
         if len(procedure.formal_params) != len(node.actual_params):
             raise self.error(ErrorCode.UNEXPECTED_TOKEN, node.token)
         for param_node in node.actual_params:
             self.visit(param_node)
-        proc_symbol = self.current_scope.lookup(node.proc_name)
+        proc_symbol = self.current_scope.lookup(node.fun_name)
         # accessed by the interpreter when executing procedure call
         node.proc_symbol = proc_symbol
 

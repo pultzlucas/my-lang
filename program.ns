@@ -1,7 +1,12 @@
-fun function-name (a: int) do
+fun main (a: int) do
     var-name: int;
-    another-var: int;
+    var-name = 1 + a;
+end 
 
-    var-name = 1;
-    another-var = var-name
-end
+fun b (b: int) do
+    var-name: int;
+end 
+
+fun c (b: int) do
+    var-name: int;
+end 
