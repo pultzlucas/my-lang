@@ -29,9 +29,9 @@ class VarSymbol(Symbol):
     __repr__ = __str__
 
 
-class ProcedureSymbol(Symbol):
+class FunctionSymbol(Symbol):
     def __init__(self, name, formal_params=None):
-        super(ProcedureSymbol, self).__init__(name)
+        super(FunctionSymbol, self).__init__(name)
         self.formal_params = [] if formal_params is None else formal_params
         self.block_ast = None
 
@@ -183,44 +183,44 @@ class SemanticAnalyser(NodeVisitor):
 
     def visit_FunctionDeclarationNode(self, node):
         fun_name = node.fun_name
-        proc_symbol = ProcedureSymbol(fun_name)
-        self.current_scope.insert(proc_symbol)
+        fun_symbol = FunctionSymbol(fun_name)
+        self.current_scope.insert(fun_symbol)
 
         self.log(f'ENTER scope: {fun_name}')
         # Scope for parameters and local variables
-        procedure_scope = ScopedSymbolTable(
+        function_scope = ScopedSymbolTable(
             scope_name=fun_name,
             scope_level=self.current_scope.scope_level + 1,
             enclosing_scope=self.current_scope
         )
-        self.current_scope = procedure_scope
+        self.current_scope = function_scope
 
-        # Insert parameters into the procedure scope
+        # Insert parameters into the function scope
         for param in node.formal_params:
             param_type = self.current_scope.lookup(param.type_node.value)
             param_name = param.var_node.value
             var_symbol = VarSymbol(param_name, param_type)
             self.current_scope.insert(var_symbol)
-            proc_symbol.formal_params.append(var_symbol)
+            fun_symbol.formal_params.append(var_symbol)
 
         self.visit(node.block_node)
 
-        self.log(procedure_scope)
+        self.log(function_scope)
 
         self.current_scope = self.current_scope.enclosing_scope
         self.log(f'LEAVE scope: {fun_name}')
 
-        # accessed by the interpreter when executing procedure call
-        proc_symbol.block_ast = node.block_node
+        # accessed by the interpreter when executing function call
+        fun_symbol.block_ast = node.block_node
         
-    def visit_ProcedureCallNode(self, node):
-        procedure = self.current_scope.lookup(node.fun_name)
-        if len(procedure.formal_params) != len(node.actual_params):
+    def visit_FunctionCallNode(self, node):
+        function = self.current_scope.lookup(node.fun_name)
+        if len(function.formal_params) != len(node.actual_params):
             raise self.error(ErrorCode.UNEXPECTED_TOKEN, node.token)
         for param_node in node.actual_params:
             self.visit(param_node)
-        proc_symbol = self.current_scope.lookup(node.fun_name)
-        # accessed by the interpreter when executing procedure call
-        node.proc_symbol = proc_symbol
+        fun_symbol = self.current_scope.lookup(node.fun_name)
+        # accessed by the interpreter when executing function call
+        node.fun_symbol = fun_symbol
 
 

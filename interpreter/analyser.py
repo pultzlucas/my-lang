@@ -11,7 +11,8 @@ from interpreter.ast.objects import (
     ParamNode,
     TypeNode,
     VarDeclarationNode,
-    ProgramNode
+    ProgramNode,
+    FunctionCallNode
 )
 
 from interpreter.exceptions import ParserError, ErrorCode 
@@ -106,42 +107,26 @@ class Analyser:
         return BlockNode(statement_list)
 
     
-    # def funcall_statement(self):
-    #     token = self.lexer.current_token
-    #     fun_name = self.lexer.current_token.value
-    #     self.eat(Tk.ID)
-    #     self.eat(Tk.LPAREN)
-    #     actual_params = []
-    #     if self.lexer.current_token.type != Tk.RPAREN:
-    #         node = self.expr()
-    #         actual_params.append(node)
-
-    #     while self.lexer.current_token.type == Tk.COMMA:
-    #         self.eat(Tk.COMMA)
-    #         node = self.expr()
-    #         actual_params.append(node)
-
-    #     self.eat(Tk.RPAREN)
-
-    #     node = FunctionCallNode(
-    #         fun_name=fun_name,
-    #         actual_params=actual_params,
-    #         token=token,
-    #     )
-    #     return node
-
-    # def variable_declaration(self):
-    #     var_nodes = [VarNode(self.lexer.current_token)]
-    #     self.eat(Tk.ID)
-    #     while self.lexer.current_token.type == Tk.COMMA:
-    #         self.eat(Tk.COMMA)
-    #         var_nodes.append(VarNode(self.lexer.current_token))
-    #         self.eat(Tk.ID)
-    #     self.eat(Tk.COLON)
-    #     type_spec = self.type_spec()
-    #     return [
-    #         VarDeclarationNode(var_node, type_spec) for var_node in var_nodes
-    #     ]
+    def funcall_statement(self):
+        token = self.lexer.current_token
+        fun_name = self.lexer.current_token.value
+        self.eat(Tk.ID)
+        self.eat(Tk.LPAREN)
+        actual_params = []
+        if self.lexer.current_token.type != Tk.RPAREN:
+            node = self.expr()
+            actual_params.append(node)
+        while self.lexer.current_token.type == Tk.COMMA:
+            self.eat(Tk.COMMA)
+            node = self.expr()
+            actual_params.append(node)
+        self.eat(Tk.RPAREN)
+        node = FunctionCallNode(
+            fun_name=fun_name,
+            actual_params=actual_params,
+            token=token,
+        )
+        return node
 
     def statement_list(self):
         results = [self.statement()]
@@ -153,8 +138,12 @@ class Analyser:
     def statement(self):
         if self.lexer.current_token.type == Tk.ID and self.lexer.current_char == ':':
             node = self.variable_declaration()
+        elif self.lexer.current_token.type == Tk.ID and self.lexer.current_char == '(':
+            node = self.funcall_statement()
         elif self.lexer.current_token.type == Tk.ID:
             node = self.assignment_statement()
+        elif self.lexer.current_token.type == Tk.FUN:
+            node = self.function_declaration()
         else:
             node = self.empty()
         return node

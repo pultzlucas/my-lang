@@ -21,12 +21,18 @@ class FunctionDeclarationNode(AST):
             'block': self.block_node.dict()
         }
 
-# class FunctionCallNode(AST):
-#     def __init__(self, fun_name, actual_params, token):
-#         self.fun_name = fun_name
-#         self.actual_params = actual_params  # a list of AST nodes
-#         self.token = token
-#         self.proc_symbol = None
+class FunctionCallNode(AST):
+    def __init__(self, fun_name, actual_params, token):
+        self.fun_name = fun_name
+        self.actual_params = actual_params  # a list of AST nodes
+        self.token = token
+        self.proc_symbol = None
+
+    def dict(self):
+        return {
+            'fun_name': self.fun_name,
+            'params': [param.dict() for param in self.actual_params]
+        }
 
 class BlockNode(AST):
     def __init__(self, statements = []):

@@ -87,6 +87,8 @@ statement
 
 statement_list
     : statement (SEMICOLON statement_list)?
+    | function_declaration
+    | function_call_statement
     ;
 
 variable_declaration

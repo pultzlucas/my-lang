@@ -1,12 +1,9 @@
-fun main (a: int) do
-    var-name: int;
-    var-name = 1 + a;
-end 
-
 fun b (b: int) do
     var-name: int;
 end 
 
-fun c (b: int) do
+fun main (a: int) do
     var-name: int;
+    var-name = 1 + a;
+    b(var-name)
 end 
