@@ -3,7 +3,6 @@ fun b (b: int) do
 end 
 
 fun main (a: int) do
-    var-name: int;
-    var-name = 1 + a;
+    var-name: int = 1 + a;
     b(var-name)
 end 

@@ -58,7 +58,11 @@ class Analyser:
         self.eat(Tk.ID)
         self.eat(Tk.COLON)
         type_spec = self.type_spec()
-        return VarDeclarationNode(var_node, type_spec)
+        var_value = None
+        if self.lexer.current_token.type == Tk.ASSIGN:
+            self.eat(Tk.ASSIGN)
+            var_value = self.expr()
+        return VarDeclarationNode(var_node, type_spec, var_value)
 
     def function_declaration(self):
         self.eat(Tk.FUN)

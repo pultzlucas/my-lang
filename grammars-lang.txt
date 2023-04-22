@@ -92,7 +92,7 @@ statement_list
     ;
 
 variable_declaration
-    : ID (COMMA ID)* COLON type_spec
+    : ID (COMMA ID)* COLON type_spec (ASSIGN expr)?
     ;
 
 formal_parameter
@@ -118,6 +118,7 @@ block
 
 declarations
     : function_declaration
+    | variable_declaration
     | empty
     ;
 

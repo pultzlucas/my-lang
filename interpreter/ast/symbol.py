@@ -156,17 +156,17 @@ class SemanticAnalyser(NodeVisitor):
     def visit_VarDeclarationNode(self, node):
         type_name = node.type_node.value
         type_symbol = self.current_scope.lookup(type_name)
-
         var_name = node.var_node.value
         var_symbol = VarSymbol(var_name, type_symbol)
-
         if  self.current_scope.lookup(var_name, current_scope_only=True) is not None:
             self.error(
                 error_code=ErrorCode.DUPLICATE_ID,
                 token=node.var_node.token,
             )
-
         self.current_scope.insert(var_symbol)
+        if node.assign_node:
+            self.visit(node.assign_node)
+
 
     def visit_AssignNode(self, node):
         var_name = node.left.value

@@ -92,14 +92,16 @@ class AssignNode(AST):
         }
 
 class VarDeclarationNode(AST):
-    def __init__(self, var_node, type_node):
+    def __init__(self, var_node, type_node, assign_node=None):
         self.var_node = var_node
         self.type_node = type_node
+        self.assign_node = assign_node
 
     def dict(self):
         return {
             'var': self.var_node.value,
-            'type' : self.type_node.value
+            'type' : self.type_node,
+            'value' : self.assign_node.right.dict()
         }
 
 class VarNode(AST):
