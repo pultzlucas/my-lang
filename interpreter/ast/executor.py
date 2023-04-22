@@ -26,25 +26,18 @@ class Executor(NodeVisitor):
             print(msg)
 
     def visit_ProgramNode(self, node):
-        program_name = node.name
-        self.log(f'ENTER: PROGRAM {program_name}')
+        self.log(f'ENTER: main')
         ar = ActivationRecord(
-            name=program_name,
+            name='main',
             type=ARType.PROGRAM,
             nesting_level=1,
         )
         self.call_stack.push(ar)
         self.log(str(self.call_stack))
-        self.visit(node.block)
-        self.log(f'LEAVE: PROGRAM {program_name}')
+        self.visit(node.init_block)
+        self.log(f'LEAVE: main')
         self.log(str(self.call_stack))
         self.call_stack.pop()
-
-
-    def visit_BlockNode(self, node):
-        for declaration in node.declarations:
-            self.visit(declaration)
-        self.visit(node.compound_statement)
 
     def visit_VarDeclarationNode(self, node):
         # Do nothing
@@ -82,9 +75,9 @@ class Executor(NodeVisitor):
         elif node.op.type == Tk.NOT:
             return not self.visit(node.expr)
         
-    def visit_CompoundNode(self, node):
-        for child in node.children:
-            self.visit(child)
+    def visit_BlockNode(self, node):
+        for statement in node.statements:
+            self.visit(statement)
 
     def visit_NoOpNode(self, node):
         pass
@@ -101,26 +94,26 @@ class Executor(NodeVisitor):
         var_value = ar.get(var_name)
         return var_value
         
-    def visit_ProcedureDeclarationNode(self, node):
+    def visit_FunctionDeclarationNode(self, node):
         pass
 
-    def visit_ProcedureCallNode(self, node):
-        proc_name = node.proc_name
-        proc_symbol = node.proc_symbol
+    def visit_FunctionCallNode(self, node):
+        fun_name = node.fun_name
+        fun_symbol = node.fun_symbol
         ar = ActivationRecord(
-            name=proc_name,
+            name=fun_name,
             type=ARType.PROCEDURE,
-            nesting_level=proc_symbol.scope_level + 1,
+            nesting_level=fun_symbol.scope_level + 1,
         )
-        formal_params = proc_symbol.formal_params
+        formal_params = fun_symbol.formal_params
         actual_params = node.actual_params
         for param_symbol, argument_node in zip(formal_params, actual_params):
             ar[param_symbol.name] = self.visit(argument_node)
         self.call_stack.push(ar) 
-        self.log(f'ENTER: PROCEDURE {proc_name}')
+        self.log(f'ENTER: PROCEDURE {fun_name}')
         self.log(str(self.call_stack))
 
-        self.visit(proc_symbol.block_ast)  
-        self.log(f'LEAVE: PROCEDURE {proc_name}')
+        self.visit(fun_symbol.block_ast)  
+        self.log(f'LEAVE: PROCEDURE {fun_name}')
         self.log(str(self.call_stack))
         self.call_stack.pop()

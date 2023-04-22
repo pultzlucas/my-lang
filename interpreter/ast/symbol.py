@@ -122,10 +122,6 @@ class SemanticAnalyser(NodeVisitor):
             message=f'{error_code.value} -> {token}',
         )
 
-    def visit_BlockNode(self, node):
-        for statement in node.statements:
-            self.visit(statement)
-
     def visit_ProgramNode(self, node):
         self.log('ENTER scope: global')
         scope = ScopedSymbolTable(
@@ -135,10 +131,15 @@ class SemanticAnalyser(NodeVisitor):
         )
         self.current_scope = scope
 
-        for decl in node.declarations:
-            self.visit(decl)
+        for util in node.utils:
+            self.visit(util)
+        self.visit(node.init_block)
         self.current_scope = self.current_scope.enclosing_scope
         self.log('LEAVE scope: global')
+
+    def visit_BlockNode(self, node):
+        for statement in node.statements:
+            self.visit(statement)
 
     def visit_BinOpNode(self, node):
         self.visit(node.left)
@@ -215,6 +216,9 @@ class SemanticAnalyser(NodeVisitor):
         
     def visit_FunctionCallNode(self, node):
         function = self.current_scope.lookup(node.fun_name)
+
+        # if not function:
+
         if len(function.formal_params) != len(node.actual_params):
             raise self.error(ErrorCode.UNEXPECTED_TOKEN, node.token)
         for param_node in node.actual_params:

@@ -2,11 +2,15 @@ class AST():
     pass
 
 class ProgramNode(AST):
-    def __init__(self, declarations = []):
-        self.declarations = declarations  # a list of Param nodes
+    def __init__(self, init_block, utils = []):
+        self.init_block = init_block
+        self.utils = utils
 
     def dict(self):
-        return [stt.dict() for stt in self.declarations]
+        return {
+            'init_block': self.init_block.dict(),
+            'utils': [stt.dict() for stt in self.utils] 
+        }
     
 class FunctionDeclarationNode(AST):
     def __init__(self, fun_name, formal_params, block_node):
@@ -100,8 +104,8 @@ class VarDeclarationNode(AST):
     def dict(self):
         return {
             'var': self.var_node.value,
-            'type' : self.type_node,
-            'value' : self.assign_node.right.dict()
+            'type' : self.type_node.value,
+            'value' : self.assign_node.dict() if self.assign_node else None
         }
 
 class VarNode(AST):

@@ -26,6 +26,7 @@ class TokenType(Enum):
     NOT_EQ = '!='
     # block of reserved words
     FUN = 'FUN'
+    # MAIN = 'MAIN'
     INT = 'INT'
     FLOAT = 'FLOAT'
     LET = 'LET'

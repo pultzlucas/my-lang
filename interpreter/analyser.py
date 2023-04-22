@@ -43,14 +43,23 @@ class Analyser:
         raise Exception(f'Unexpected token "{unexpected}", expected "{expected}"')
 
     def program(self):
-        return ProgramNode(declarations=self.declarations())        
+        fun_declarations = self.declarations()
+        init_block = None
+        utils = []
+        for fun in fun_declarations:
+            if fun.fun_name == 'main':
+                if init_block is not None:
+                    raise Exception('Two "main" functions is not permitted')
+                init_block = fun.block_node
+            else:
+                utils.append(fun)
+
+        return ProgramNode(init_block=init_block, utils=utils)        
 
     def declarations(self):
         declarations = [self.function_declaration()]
         while self.lexer.current_token.type == Tk.FUN:
             declarations.append(self.function_declaration())
-        if len(declarations) == 0:
-            return [self.empty()]
         return declarations
 
     def variable_declaration(self):
@@ -62,7 +71,7 @@ class Analyser:
         if self.lexer.current_token.type == Tk.ASSIGN:
             self.eat(Tk.ASSIGN)
             var_value = self.expr()
-        return VarDeclarationNode(var_node, type_spec, var_value)
+        return VarDeclarationNode(var_node, type_spec, assign_node=var_value)
 
     def function_declaration(self):
         self.eat(Tk.FUN)
@@ -75,8 +84,7 @@ class Analyser:
                 params = self.formal_parameter_list()
             self.eat(Tk.RPAREN)
         block_node = self.block()
-        fun_decl = FunctionDeclarationNode(fun_name, params, block_node)
-        return fun_decl
+        return FunctionDeclarationNode(fun_name, params, block_node)
 
     def formal_parameter_list(self):
         params = [self.formal_parameter()]

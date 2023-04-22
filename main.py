@@ -30,9 +30,9 @@ def main():
         ast = analyser.parse()
         executor = Executor(ast)
         symtab_builder = SemanticAnalyser(ast)
-        # print(json.dumps(ast.dict(), indent = 3))
+        print(json.dumps(ast.dict(), indent = 4))
         symtab_builder.run()
-        # executor.run()
+        executor.run()
 
 if __name__ == '__main__':
     main()
