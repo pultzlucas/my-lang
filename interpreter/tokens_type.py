@@ -30,6 +30,7 @@ class TokenType(Enum):
     INT = 'INT'
     FLOAT = 'FLOAT'
     LET = 'LET'
+    IF = 'IF'
     AND = 'AND'
     OR = 'OR'
     NON = 'NON'

@@ -59,6 +59,8 @@ class ScopedSymbolTable(object):
     def _init_builtins(self):
         self.insert(BuiltinTypeSymbol('INT'))
         self.insert(BuiltinTypeSymbol('FLOAT'))
+        self.insert(BuiltinTypeSymbol('BOOLEAN'))
+        self.insert(BuiltinTypeSymbol('STRING'))
 
     def __str__(self):
         h1 = 'SCOPE (SCOPED SYMBOL TABLE)'
@@ -226,5 +228,9 @@ class SemanticAnalyser(NodeVisitor):
         fun_symbol = self.current_scope.lookup(node.fun_name)
         # accessed by the interpreter when executing function call
         node.fun_symbol = fun_symbol
+    
+    def visit_ConditionalOpNode(self, node):
+        self.visit(node.condition_expr)
+        self.visit(node.block_node)
 
 

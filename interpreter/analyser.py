@@ -12,7 +12,8 @@ from interpreter.ast.objects import (
     TypeNode,
     VarDeclarationNode,
     ProgramNode,
-    FunctionCallNode
+    FunctionCallNode,
+    ConditionalOpNode
 )
 
 from interpreter.exceptions import ParserError, ErrorCode 
@@ -47,7 +48,7 @@ class Analyser:
         init_block = BlockNode()
         utils = []
         for fun in fun_declarations:
-            if fun.fun_name == 'main':
+            if fun.fun_name.lower() == 'main':
                 if len(init_block.statements) > 0:
                     raise Exception('Two "main" functions is not permitted')
                 init_block = fun.block_node
@@ -153,11 +154,19 @@ class Analyser:
             node = self.funcall_statement()
         elif self.lexer.current_token.type == Tk.ID:
             node = self.assignment_statement()
-        elif self.lexer.current_token.type == Tk.FUN:
-            node = self.function_declaration()
+        elif self.lexer.current_token.type == Tk.IF:
+            node = self.if_statement()
+        # elif self.lexer.current_token.type == Tk.FUN:
+        #     node = self.function_declaration()
         else:
             node = self.empty()
         return node
+
+    def if_statement(self):
+        self.eat(Tk.IF)
+        condition_expr = self.expr()
+        block_node = self.block()
+        return ConditionalOpNode(condition_expr=condition_expr, block_node=block_node)
 
     def assignment_statement(self):
         left = self.variable()

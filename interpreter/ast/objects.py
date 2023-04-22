@@ -133,3 +133,14 @@ class ParamNode(AST):
             'var' : self.var_node.value,
             'type' : self.type_node.value
         }
+    
+class ConditionalOpNode(AST):
+    def __init__(self, condition_expr, block_node):
+        self.condition_expr = condition_expr
+        self.block_node = block_node
+
+    def dict(self):
+        return {
+            'condition_expr': self.condition_expr.dict(),
+            'block': self.block_node.dict()
+        }

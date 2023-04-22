@@ -1,9 +1,8 @@
 fun main (a: int) do
-    var-name: int = 1;
-    var-name = 2
+    var-name: int = 2;
+    if var-name == 1 do
+        var-name = 2
+    end;
+    var-name = 1
 end
-
-fun b (b: int) do
-    var-name: int
-end 
 

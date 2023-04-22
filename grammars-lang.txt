@@ -39,6 +39,7 @@ factor
     | NON
     ;
 
+
 term
     : factor (EXPONENT term)?
     ;
@@ -79,16 +80,21 @@ assignment_statement
     : variable ASSIGN expr
     ;
 
+if_statement
+    : IF expr block
+    ;
+
 statement
     : compound_statement
     | assignment_statement
+    | if_statement
+    | function_call_statement
     | empty
     ;
 
+
 statement_list
     : statement (SEMICOLON statement_list)?
-    | function_declaration
-    | function_call_statement
     ;
 
 variable_declaration

@@ -117,3 +117,8 @@ class Executor(NodeVisitor):
         self.log(f'LEAVE: PROCEDURE {fun_name}')
         self.log(str(self.call_stack))
         self.call_stack.pop()
+
+    def visit_ConditionalOpNode(self, node):
+        condition_result = bool(self.visit(node.condition_expr))
+        if condition_result:
+            self.visit(node.block_node)
