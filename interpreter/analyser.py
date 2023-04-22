@@ -44,16 +44,15 @@ class Analyser:
 
     def program(self):
         fun_declarations = self.declarations()
-        init_block = None
+        init_block = BlockNode()
         utils = []
         for fun in fun_declarations:
             if fun.fun_name == 'main':
-                if init_block is not None:
+                if len(init_block.statements) > 0:
                     raise Exception('Two "main" functions is not permitted')
                 init_block = fun.block_node
             else:
                 utils.append(fun)
-
         return ProgramNode(init_block=init_block, utils=utils)        
 
     def declarations(self):
